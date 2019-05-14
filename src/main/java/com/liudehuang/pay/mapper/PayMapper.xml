@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.liudehuang.pay.dao.PayDao">
+
+    <sql id="system_table">t_system</sql>
+    <sql id="ali_configuration_table">t_ali_configuration</sql>
+    <sql id="wx_configuration_table">t_wx_configuration</sql>
+    <sql id="pay_record">t_pay_record</sql>
+    <!--阿里支付配置-->
+    <resultMap id="aliConfigurationMap" type="com.liudehuang.pay.entity.AliConfiguration">
+        <result property="id" column="id"/>
+        <result property="fid" column="fid"/>
+        <result property="gateway" column="gateway"/>
+        <result property="appId" column="appid"/>
+        <result property="merchantPrivatekey" column="merchantprivatekey"/>
+        <result property="alipayPublickey" column="alipaypublickey"/>
+        <result property="notifyUrl" column="notifyurl"/>
+        <result property="returnUrl" column="returnurl"/>
+        <result property="signType" column="signtype"/>
+        <result property="charset" column="charset"/>
+        <result property="merchant" column="merchant"/>
+        <result property="payCode" column="paycode"/>
+        <result property="status" column="status"/>
+        <result property="systemId" column="systemid"/>
+        <result property="createTime" column="createtime"/>
+        <result property="updateTime" column="updatetime"/>
+    </resultMap>
+    <!--微信支付配置-->
+    <resultMap id="wxConfigurationMap" type="com.liudehuang.pay.entity.WxConfiguration">
+        <result property="id" column="id"/>
+        <result property="fid" column="fid"/>
+        <result property="appId" column="appid"/>
+        <result property="mchId" column="mchid"/>
+        <result property="mchKey" column="mchkey"/>
+        <result property="signType" column="signtype"/>
+        <result property="charset" column="charset"/>
+        <result property="gateway" column="gateway"/>
+        <result property="payCode" column="paycode"/>
+        <result property="merchant" column="merchant"/>
+        <result property="status" column="status"/>
+        <result property="systemId" column="systemid"/>
+        <result property="createTime" column="createtime"/>
+        <result property="updateTime" column="updatetime"/>
+    </resultMap>
+    <select id="getAliConfiguration"
+            resultMap="aliConfigurationMap">
+        select
+        ali.id,
+        ali.fid,
+        ali.gateway,
+        ali.appid,
+        ali.merchantprivatekey,
+        ali.alipaypublickey,
+        ali.notifyurl,
+        ali.returnUrl,
+        ali.signtype,
+        ali.charset,
+        ali.merchant,
+        ali.paycode,
+        ali.status,
+        system.systemid,
+        DATE_FORMAT(ali.createtime,'%Y-%m-%d %H:%i:%s') as createtime,
+        DATE_FORMAT(ali.updatetime,'%Y-%m-%d %H:%i:%s') as updatetime
+        from
+        <include refid="system_table"/>
+        as system
+        inner join
+        <include refid="ali_configuration_table"/>
+        as ali
+        on system.merchant = ali.merchant
+        where system.systemid = #{systemId}
+        and ali.paycode = #{payCode} and ali.status = 0
+    </select>
+
+    <select id="getWxConfiguration" resultMap="wxConfigurationMap">
+        SELECT
+        wx.id,
+        wx.fid,
+        wx.appid,
+        wx.mchid,
+        wx.mchkey,
+        wx.signtype,
+        wx.charset,
+        wx.gateway,
+        wx.paycode,
+        wx.merchant,
+        wx.`status`,
+        system.systemid,
+        wx.createtime,
+        wx.updatetime
+        FROM
+        <include refid="system_table"/> AS system
+        INNER JOIN <include refid="wx_configuration_table"/> AS wx ON system.merchant = wx.merchant
+        WHERE
+        system.systemid = #{systemId}
+        AND wx.paycode = #{payCode}
+        AND wx.status = 0
+    </select>
+</mapper>
